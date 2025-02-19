@@ -4,14 +4,12 @@ const nextButton = document.getElementById('next');
 
 let currentQuestionIndex = 0;
 let totalScore = 0;
+let selectedAnswer = null;
 
 function showQuestion() {
   const currentQuestion = questions[currentQuestionIndex];
   const answers = currentQuestion.answers.map((answer, index) => `
-    <label class="answer">
-      <input type="radio" name="question" value="${answer.score}">
-      ${answer.text}
-    </label>
+    <div class="answer" data-score="${answer.score}">${answer.text}</div>
   `).join('');
 
   quizContainer.innerHTML = `
@@ -22,10 +20,17 @@ function showQuestion() {
   // Disable nút "Câu Tiếp Theo" cho đến khi người dùng chọn đáp án
   nextButton.disabled = true;
 
-  // Bật nút "Câu Tiếp Theo" khi người dùng chọn đáp án
-  const answerInputs = quizContainer.querySelectorAll('input[name="question"]');
-  answerInputs.forEach(input => {
-    input.addEventListener('change', () => {
+  // Thêm sự kiện click cho các đáp án
+  const answerElements = quizContainer.querySelectorAll('.answer');
+  answerElements.forEach(answer => {
+    answer.addEventListener('click', () => {
+      // Xóa lớp selected từ tất cả các đáp án
+      answerElements.forEach(a => a.classList.remove('selected'));
+      // Thêm lớp selected cho đáp án được chọn
+      answer.classList.add('selected');
+      // Lưu đáp án được chọn
+      selectedAnswer = answer;
+      // Kích hoạt nút "Câu Tiếp Theo"
       nextButton.disabled = false;
     });
   });
@@ -44,16 +49,16 @@ function showResults() {
 }
 
 nextButton.addEventListener('click', () => {
-  // Lấy đáp án được chọn
-  const selectedAnswer = quizContainer.querySelector('input[name="question"]:checked');
+  // Lấy điểm từ đáp án được chọn
   if (selectedAnswer) {
-    totalScore += parseInt(selectedAnswer.value);
+    totalScore += parseInt(selectedAnswer.dataset.score);
   }
 
   // Chuyển sang câu hỏi tiếp theo
   currentQuestionIndex++;
   if (currentQuestionIndex < questions.length) {
     showQuestion();
+    selectedAnswer = null; // Đặt lại đáp án được chọn
   } else {
     // Nếu đã hết câu hỏi, hiển thị kết quả
     quizContainer.innerHTML = '';
